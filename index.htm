@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS - Operating Room Module</title>
+
+    <style>
+        :root {
+            --navy: #17324d;
+            --blue: #2563eb;
+            --teal: #0f766e;
+            --background: #f3f6fa;
+            --border: #d9e2ec;
+            --text: #172b3a;
+            --muted: #627386;
+            --white: #ffffff;
+            --warning: #fff4d6;
+            --success: #e4f5eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        header {
+            background: var(--navy);
+            color: white;
+            padding: 24px 30px;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 25px;
+        }
+
+        header p {
+            margin: 0;
+            color: #dce8f4;
+        }
+
+        .container {
+            max-width: 1450px;
+            margin: 24px auto;
+            padding: 0 20px;
+        }
+
+        .notice {
+            background: var(--warning);
+            border: 1px solid #efd9a0;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 230px minmax(0, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .sidebar {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            position: sticky;
+            top: 15px;
+        }
+
+        .brand {
+            color: var(--navy);
+            font-size: 18px;
+            font-weight: bold;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+
+        .nav-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 5px;
+            text-align: left;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: #4a5d70;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .nav-button:hover {
+            background: #eef4fb;
+        }
+
+        .nav-button.active {
+            background: #dceaff;
+            color: #174ea6;
+            font-weight: bold;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(25, 50, 77, 0.05);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .screen-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .screen-header h2 {
+            margin: 0 0 5px;
+            font-size: 21px;
+        }
+
+        .screen-header p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .tag {
+            background: #eaf2ff;
+            color: #174ea6;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .patient-bar {
+            background: #f7faff;
+            border: 1px solid #d9e7fa;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .status {
+            background: var(--warning);
+            color: #815700;
+            border-radius: 20px;
+            padding: 5px 9px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .info {
+            background: #edf7f7;
+            border: 1px solid #b9e2df;
+            color: #155e59;
+            border-radius: 7px;
+            padding: 12px;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .section {
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--navy);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .form-grid.three {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            min-width: 0;
+        }
+
+        .card h3 {
+            margin: 0 0 14px;
+            color: var(--navy);
+            font-size: 15px;
+        }
+
+        .field {
+            margin-bottom: 13px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #526579;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd6e2;
+            border-radius: 6px;
+            background: white;
+            color: var(--text);
+            font: inherit;
+            font-size: 13px;
+        }
+
+        textarea {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: var(--blue);
+        }
+
+        .checklist {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+        }
+
+        .check-item input {
+            width: auto;
+        }
+
+        .check-item label {
+            margin: 0;
+            font-weight: normal;
+            color: var(--text);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: 1px solid #b9c8d8;
+            border-radius: 6px;
+            background: white;
+            color: #20384d;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn:hover {
+            filter: brightness(0.96);
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: white;
+        }
+
+        .warning-box {
+            background: var(--warning);
+            border: 1px solid #f1d58a;
+            color: #755400;
+            border-radius: 7px;
+            padding: 12px;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e4ebf2;
+            text-align: left;
+        }
+
+        th {
+            background: #f3f7fb;
+            color: #42576b;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        footer {
+            margin-top: 20px;
+            padding: 16px 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .nav-list {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 5px;
+            }
+
+            .form-grid.three {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 550px) {
+            .container {
+                padding: 0 10px;
+            }
+
+            header {
+                padding: 20px 15px;
+            }
+
+            .form-grid,
+            .form-grid.three,
+            .card-grid,
+            .checklist {
+                grid-template-columns: 1fr;
+            }
+
+            .screen-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .content {
+                padding: 13px;
+            }
+
+            .nav-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Operating Room Management</h1>
+    <p>Hospital Management System · OR Module</p>
+</header>
+
+<main class="container">
+
+    <div class="notice">
+        <strong>Prototype notice:</strong>
+        This is a UI demonstration using sample patient information.
+        It is not connected to a real hospital database and does not save
+        clinical records or issue medical orders.
+    </div>
+
+    <div class="layout">
+
+        <!-- LEFT NAVIGATION -->
+        <aside class="sidebar">
+            <div class="brand">HMS / Clinical</div>
+
+            <nav class="nav-list">
+                <button class="nav-button active" data-screen="booking">
+                    1. Prepare for Surgery
+                </button>
+
+                <button class="nav-button" data-screen="preop">
+                    2. Pre-operative Evaluation
+                </button>
+
+                <button class="nav-button" data-screen="orders">
+                    3. Pre-operative Orders
+                </button>
+
+                <button class="nav-button" data-screen="intraop">
+                    4. Intraoperative Record
+                </button>
+
+                <button class="nav-button" data-screen="operation-note">
+                    5. Operation Note
+                </button>
+
+                <button class="nav-button" data-screen="pacu">
+                    6. PACU Recovery
+                </button>
+
+                <button class="nav-button" data-screen="postop">
+                    7. Post-operative Management
+                </button>
+            </nav>
+
+            <footer>
+                OR workflow:<br>
+                Initiation → Pre-operative → Intraoperative → Post-operative
+            </footer>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div>
+
+            <!-- SCREEN 1: SURGERY BOOKING -->
+            <section class="panel screen active" id="booking">
+
+                <div class="screen-header">
+                    <div>
+                        <h2>Prepare for Surgery</h2>
+                        <p>Create a surgery booking and initiate the OR workflow.</p>
+                    </div>
+                    <span class="tag">Phase 1 · Initiation</span>
+                </div>
+
+                <div class="content">
+
+                    <div class="patient-bar">
+                        <div>
+                            <strong>Patient:</strong> Example Patient<br>
+                            <span class="muted">MRN: DEMO-001 · Sample data only</span>
+                        </div>
+                        <span class="status">Booking Draft</span>
+                    </div>
+
+                    <div class="info">
+                        <strong>Workflow rule:</strong>
+                        The doctor enters the surgery type. Finance handles
+                        surgery pricing separately through the Surgery Payment
+                        section of the Payment Module.
+                    </div>
+
+                    <div class="section">
+
+                        <div class="section-title">
+                            <h3>Surgical Booking</h3>
+                        </div>
+
+                        <div class="form-grid">
+
+                            <div class="field">
+                                <label for="surgery-type">Surgery Type</label>
+                                <input
+                                    id="surgery-type"
+                                    list="surgery-options"
+                                    placeholder="Search or type surgery type"
+                                >
+                                <datalist id="surgery-options">
+                                    <option value="General Surgery">
+                                    <option value="Orthopedic Surgery">
+                                    <option value="Gynecological Surgery">
+                                    <option value="Urological Surgery">
+                                    <option value="Cardiac Surgery">
+                                </datalist>
+                            </div>
+
+                            <div class="field">
+                                <label for="diagnosis">Preoperative Diagnosis</label>
+                                <input id="diagnosis" placeholder="Enter diagnosis">
+                            </div>
+
+                            <div class="field">
+                                <label for="procedure">Planned Procedure</label>
+                                <input id="procedure" placeholder="Enter planned procedure">
+                            </div>
+
+                            <div class="field">
+                                <label for="surgeon">Surgeon</label>
+                                <input id="surgeon" placeholder="Select or enter surgeon">
+                            </div>
+
+                            <div class="field">
+                                <label for="assistant">Assistant Surgeon</label>
+                                <input id="assistant" placeholder="Select or enter assistant">
+                            </div>
+
+                            <div class="field">
+                                <label for="anesthetist">Anesthetist</label>
+                                <input id="anesthetist" placeholder="Select or enter anesthetist">
+                            </div>
+
+                            <div class="field">
+                                <label for="surgery-date">Planned Surgery Date</label>
+                                <input id="surgery-date" type="date">
+                            </div>
+
+                            <div class="field">
+                                <label for="surgery-time">Planned Surgery Time</label>
+                                <input id="surgery-time" type="time">
+                            </div>
+
+                        </div>
+
+                        <div class="button-row">
+                            <button class="btn btn-success" onclick="demoSave('Surgical booking')">
+                                Save Booking
+                            </button>
+
+                            <button class="btn btn-primary" onclick="prepareSurgery()">
+                                Prepare for Surgery
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div class="section">
+
+                        <div class="section-title">
+                            <h3>Finance Handoff</h3>
+                            <span class="status">Pending Finance</span>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Payment Queue</th>
+                                        <th>Triggered By</th>
+                                        <th>Finance Decision</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <tr>
+                                        <td>Payment Module → Surgery Payment</td>
+                                        <td>Surgery type entered</td>
+                                        <td>Direct Surgery Price or Offer Package</td>
+                                        <td>Pending</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <p class="muted">
+                            Direct Surgery Price covers the procedure price.
+                            Offer Package may include surgery services, medication,
+                            pharmacy, consumables, and other treatments.
+                            Finance pricing is not implemented in this prototype.
+                        </p>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN 2: PREOPERATIVE EVALUATION -->
+            <section class="panel screen" id="preop">
+
+                <div class="screen-header">
+                    <div>
+                        <h2>Pre-operative Evaluation</h2>
+                        <p>Document surgical assessment, anesthesia evaluation, and readiness.</p>
+                    </div>
+                    <span class="tag">Phase 2 · Pre-operative</span>
+                </div>
+
+                <div class="content">
+
+                    <div class="patient-bar">
+                        <div>
+                            <strong>Patient:</strong> Example Patient<br>
+                            <span class="muted">Surgery episode: DEMO-OR-001</span>
+                        </div>
+                        <span class="status">Review in Progress</span>
+                    </div>
+
+                    <div class="card-grid">
+
+                        <div class="card">
+                            <h3>Surgical Assessment</h3>
+
+                            <div class="field">
+                                <label>Diagnosis</label>
+                                <input placeholder="Enter diagnosis">
+                            </div>
+
+                            <div class="field">
+                                <label>Procedure Planned</label>
+                                <input placeholder="Enter planned procedure">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Anesthesia Evaluation</h3>
+
+                            <div class="field">
+                                <label>ASA Classification</label>
+                                <select>
+                                    <option value="">Select classification</option>
+                                    <option>ASA I</option>
+                                    <option>ASA II</option>
+                                    <option>ASA III</option>
+                                    <option>ASA IV</option>
+                                    <option>ASA V</option>
+                                    <option>ASA VI</option>
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label>Airway Assessment</label>
+                                <textarea placeholder="Document assessment"></textarea>
+                            </div>
+
+                            <div class="field">
+                                <label>Allergies</label>
+                                <textarea placeholder="Document known allergies or status"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="section" style="margin-top: 22px;">
+                        <div class="section-title">
+                            <h3>Pre-operative Checklist</h3>
+                        </div>
+
+                        <div class="checklist">
+
+                            <div class="check-item">
+                                <input type="checkbox" id="consent">
+                                <label for="consent">Consent signed</label>
+                            </div>
+
+                            <div class="check-item">
+                                <input type="checkbox" id="blood">
+                                <label for="blood">Blood availability checked</label>
+                            </div>
+
+                            <div class="check-item">
+                                <input type="checkbox" id="site">
+                                <label for="site">Surgical site marked</label>
+                            </div>
+
+                            <div class="check-item">
+                                <input type="checkbox" id="investigations">
+                                <label for="investigations">Investigations reviewed</label>
+                            </div>
+
+                            <div class="check-item">
+                                <input type="checkbox" id="fasting">
+                                <label for="fasting">Fasting status checked</label>
+                            </div>
+
+                            <div class="check-item">
+                                <input type="checkbox" id="jewelry">
+                                <label for="jewelry">Jewelry removal checked</label>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="card">
+                            <h3>Consent Document</h3>
+
+                            <div class="field">
+                                <label>Upload Consent Document</label>
+                                <input type="file" accept=".pdf,.jpg,.jpeg,.png">
+                            </div>
+
+                            <p class="muted">
+                                This file input only demonstrates the interface.
+                                The document is not uploaded to a server.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="demoSave('Pre-operative evaluation')">
+                            Save Evaluation
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SCREEN 3: PREOPERATIVE ORDERS -->
+            <section class="panel screen" id="orders">
+
+                <div class="screen-header">
+                    <div>
+                        <h2>Pre-operative Orders</h2>
+                        <p>Document the orders associated with the planned procedure.</p>
+                    </div>
+                    <span class="tag">Pre-operative</span>
+                </div>
+
+                <div class="content">
+
+                    <div class="patient-bar">
+                        <div>
+                            <strong>Patient:</strong> Example Patient<br>
+                            <span class="muted">Surgery episode: DEMO-OR-001</span>
+                        </div>
+                        <span class="status">Orders Draft</span>
+                    </div>
+
+                    <div class="card-grid">
+
+                        <div class="card">
+                            <h3>NPO Status</h3>
+                            <div class="field">
+                                <label>Documented instruction</label>
+                                <textarea placeholder="Enter the authorized NPO instruction"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>IV Fluids</h3>
+                            <div class="field">
+                                <label>Fluid order</label>
+                                <textarea placeholder="Enter the prescribed fluid order"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Antibiotic Prophylaxis</h3>
+                            <div class="field">
+                                <label>Medication order</label>
+                                <textarea placeholder="Document the authorized order"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Blood Products</h3>
+                            <div class="field">
+                                <label>Order / instruction</label>
+                                <textarea placeholder="Document the authorized order"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>DVT Prophylaxis</h3>
+                            <div class="field">
+                                <label>Order / instruction</label>
+                                <textarea placeholder="Document the authorized order"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="demoSave('Pre-operative orders')">
+                            Save Orders
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SCREEN 4: INTRAOPERATIVE RECORD -->
+            <section class="panel screen" id="intraop">
+
+                <div class="screen-header">
+                    <div>
+                        <h2>Intraoperative Record</h2>
+                        <p>Document surgical, anesthesia, and circulating nurse records.</p>
+                    </div>
+                    <span class="tag">Phase 3 · Intraoperative</span>
+                </div>
+
+                <div class="content">
+
+                    <div class="patient-bar">
+                        <div>
+                            <strong>Patient:</strong> Example Patient<br>
+                            <span class="muted">Surgery episode: DEMO-OR-001</span>
+                        </div>
+                        <span class="status">Documentation in Progress</span>
+                    </div>
+
+                    <div class="card-grid">
+
+                        <div class="card">
+                            <h3>Surgical Record</h3>
+
+                            <div class="field">
+                                <label>Procedure Performed</label>
+                                <input placeholder="Enter procedure performed">
+                            </div>
+
+                            <div class="field">
+                                <label>Operative Findings</label>
+                                <textarea placeholder="Document operative findings"></textarea>
+                            </div>
+
+                            <div class="field">
+                                <label>Estimated Blood Loss</label>
+                                <input placeholder="Enter amount and unit">
+                            </div>
+
+                            <div class="field">
+                                <label>Complications</label>
+                                <textarea placeholder="Document complications or status"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Anesthesia Record</h3>
+
+                            <div class="field">
+                                <label>Drugs Administered</label>
+                                <textarea placeholder="Document administered drugs"></textarea>
+                            </div>
+
+                            <div class="field">
+                                <label>Monitoring Record</label>
+                                <textarea placeholder="Document monitoring observations"></textarea>
+                            </div>
+
+                            <div class="field">
+                                <label>Fluid Balance</label>
+                                <textarea placeholder="Document fluid balance information"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Circulating Nurse Note</h3>
+
+                            <div class="field">
+                                <label>Observations and Timing</label>
+                                <textarea placeholder="Document observations and relevant times"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Instrument and Sponge Count</h3>
+
+                            <div class="warning-box">
+                                <strong>Required checkpoint:</strong>
+                                The supplied workflow requires instrument and sponge
+                                count documentation before incision closure.
+                            </div>
+
+                            <div class="field">
+                                <label>Count Documentation Status</label>
+                                <select>
+                                    <option value="">Select status</option>
+                                    <option>Not recorded</option>
+                                    <option>Recorded</option>
+                                    <option>Discrepancy - follow local procedure</option>
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label>Notes</label>
+                                <textarea placeholder="Document according to hospital policy"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="demoSave('Intraoperative record')">
+                            Save Intraoperative Record
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SCREEN 5: OPERATION NOTE -->
+            <section class="panel screen" id="operation-note">
+
+                <div class="screen-header">
+                    <div>
+                        <h2>Operation Note</h2>
+                        <p>Record the procedure and key operative details.</p>
+                    </div>
+                    <span class="tag">Operative Documentation</span>
+                </div>
+
+                <div class="content">
+
+                    <div class="patient-bar">
+                        <div>
+                            <strong>Patient:</strong> Example Patient<br>
+                            <span class="muted">Surgery episode: DEMO-OR-001</span>
+                        </div>
+                        <span class="status">Draft Note</span>
+                    </div>
+
+                    <div class="form-grid">
+
+                        <div class="field">
+                            <label>Preoperative Diagnosis</label>
+                            <input placeholder="Enter diagnosis">
+                        </div>
+
+                        <div class="field">
+                            <label>Postoperative Diagnosis</label>
+                            <input placeholder="Enter diagnosis">
+                        </div>
+
+                        <div class="field">
+                            <label>Procedure Performed</label>
+                            <input placeholder="Enter procedure">
+                        </div>
+
+                        <div class="field">
+                            <label>Estimated Blood Loss</label>
+                            <input placeholder="Enter amount and unit">
+                        </div>
+
+                        <div class="field">
+                            <label>Surgeon</label>
+                            <input placeholder="Enter or select surgeon">
+                        </div>
+
+                        <div class="field">
+                            <label>Assistant</label>
+                            <input placeholder="Enter or select assistant">
+                        </div>
+
+                        <div class="field">
+                            <label>Anesthetist</label>
+                            <input placeholder="Enter or select anesthetist">
+                        </div>
+
+                        <div class="field">
+                            <label>Specimens Sent</label>
+                            <input placeholder="Document specimen details">
+                        </div>
+
+                    </div>
+
+                    <div class="field">
+                        <label>Operative Findings</label>
+                        <textarea placeholder="Document operative findings"></textarea>
+                    </div>
+
+                    <div class="field">
+                        <label>Complications</label>
+                        <textarea placeholder="Document complications or status"></textarea>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="demoSave('Operation note draft')">
+                            Save Draft
+                        </button>
+
+                        <button class="btn btn-primary" onclick="alert('Prototype only. Finalization and signature rules must be confirmed with the hospital.')">
+                            Review / Finalize
+                        </button>
+                    </div>
+
+                    <p class="muted">
+                        Signature, finalization, locking, and amendments must follow
+                        the existing HMS rules.
+                    </p>
+
+                </div>
+            </section>
+
+            <!-- SCREEN 6: PACU -->
+            <section class="panel screen" id="pacu">
+
+                <div class="screen-header">
+                    <div>
+                        <h2>PACU Recovery</h2>
+                        <p>Document post-anesthesia recovery observations.</p>
+                    </div>
+                    <span class="tag">Phase 4 · Recovery</span>
+                </div>
+
+                <div class="content">
+
+                    <div class="patient-bar">
+                        <div>
+                            <strong>Patient:</strong> Example Patient<br>
+                            <span class="muted">Recovery episode: DEMO-PACU-001</span>
+                        </div>
+                        <span class="status">Recovery Monitoring</span>
+                    </div>
+
+                    <div class="card-grid">
+
+                        <div class="card">
+                            <h3>Vital Signs</h3>
+                            <div class="field">
+                                <label>Monitoring Record</label>
+                                <textarea placeholder="Document observations using approved fields and units"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Pain Score</h3>
+                            <div class="field">
+                                <label>Score and Scale</label>
+                                <input placeholder="Use hospital-approved pain scale">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Consciousness Level</h3>
+                            <div class="field">
+                                <label>Assessment</label>
+                                <input placeholder="Document consciousness assessment">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Aldrete Score</h3>
+                            <div class="field">
+                                <label>Score</label>
+                                <input placeholder="Record according to approved local process">
+                            </div>
+
+                            <p class="muted">
+                                Score calculation and monitoring rules must be confirmed
+                                before clinical implementation.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="demoSave('PACU record')">
+                            Save PACU Record
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SCREEN 7: POSTOPERATIVE MANAGEMENT -->
+            <section class="panel screen" id="postop">
+
+                <div class="screen-header">
+                    <div>
+                        <h2>Post-operative Management</h2>
+                        <p>Document postoperative orders and progress notes.</p>
+                    </div>
+                    <span class="tag">Phase 4 · Post-operative</span>
+                </div>
+
+                <div class="content">
+
+                    <div class="patient-bar">
+                        <div>
+                            <strong>Patient:</strong> Example Patient<br>
+                            <span class="muted">Surgery episode: DEMO-OR-001</span>
+                        </div>
+                        <span class="status">Post-op Plan</span>
+                    </div>
+
+                    <div class="card-grid">
+
+                        <div class="card">
+                            <h3>Analgesics</h3>
+                            <div class="field">
+                                <label>Medication Order / Instruction</label>
+                                <textarea placeholder="Use the existing medication workflow"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Antibiotics</h3>
+                            <div class="field">
+                                <label>Medication Order / Instruction</label>
+                                <textarea placeholder="Use the existing medication workflow"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>IV Fluids</h3>
+                            <div class="field">
+                                <label>Order / Instruction</label>
+                                <textarea placeholder="Document the authorized order"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Diet</h3>
+                            <div class="field">
+                                <label>Diet Instruction</label>
+                                <input placeholder="Enter diet instruction">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Mobilization</h3>
+                            <div class="field">
+                                <label>Mobilization Instruction</label>
+                                <input placeholder="Enter mobilization instruction">
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <h3>Postoperative Progress Notes</h3>
+                            <div class="field">
+                                <label>Progress Note</label>
+                                <textarea placeholder="Enter progress note"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="info" style="margin-top: 18px;">
+                        Medication orders, pharmacy, ward transfer, ICU transfer,
+                        and other destination handoffs should use existing HMS
+                        workflows when available.
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn btn-success" onclick="demoSave('Postoperative plan')">
+                            Save Post-op Plan
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <footer>
+        <strong>Development note:</strong>
+        This frontend prototype demonstrates the interface and navigation only.
+        It does not save patient records, upload consent documents, calculate
+        clinical scores, issue medication orders, or connect to the HMS database.
+        Do not enter real patient information.
+    </footer>
+
+</main>
+
+<script>
+    // Switch between OR Module screens.
+    const navigationButtons = document.querySelectorAll(".nav-button");
+    const screens = document.querySelectorAll(".screen");
+
+    navigationButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+
+            // Remove the active style from all navigation buttons.
+            navigationButtons.forEach(function (item) {
+                item.classList.remove("active");
+            });
+
+            // Hide all screens.
+            screens.forEach(function (screen) {
+                screen.classList.remove("active");
+            });
+
+            // Activate the selected navigation button.
+            button.classList.add("active");
+
+            // Show the screen connected to the selected button.
+            const screenId = button.getAttribute("data-screen");
+            document.getElementById(screenId).classList.add("active");
+
+            // Return to the top of the page.
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        });
+    });
+
+    // Demonstration only: this does not save anything to a database.
+    function demoSave(sectionName) {
+        alert(
+            sectionName +
+            " is a UI prototype only.\n\n" +
+            "No data has been saved to a database."
+        );
+    }
+
+    // Demonstration only: this does not initiate a real surgery episode.
+    function prepareSurgery() {
+        const surgeryType = document.getElementById("surgery-type").value.trim();
+
+        if (!surgeryType) {
+            alert("Please enter a Surgery Type first.");
+            document.getElementById("surgery-type").focus();
+            return;
+        }
+
+        alert(
+            "Surgery Type: " + surgeryType + "\n\n" +
+            "Prototype demonstration only.\n" +
+            "In the real HMS, this action would initiate the configured " +
+            "surgery workflow and notify the Finance module."
+        );
+    }
+</script>
+
+</body>
+</html>
