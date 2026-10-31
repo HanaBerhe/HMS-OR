@@ -1,1746 +1,1042 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>HMS OR Module - Implementation Guide</title>
+<title>HMS - Operating Room Workflow Guide</title>
 
 <style>
 :root {
-    --navy: #17324d;
-    --blue: #2563eb;
-    --teal: #0f766e;
-    --background: #f3f6fa;
-    --border: #dbe3ec;
-    --text: #243447;
-    --muted: #66788a;
-    --white: #ffffff;
+  --navy: #173f5f;
+  --teal: #159b98;
+  --text: #263648;
+  --muted: #64748b;
+  --border: #dce4ec;
+  --light: #f1f6fa;
 }
 
-* {
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
+* { box-sizing: border-box; }
 
 body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: var(--background);
-    color: var(--text);
-    line-height: 1.7;
-    font-size: 14px;
+  margin: 0;
+  background: #eaf0f5;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
-button {
-    font: inherit;
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--navy);
+  color: white;
+  padding: 12px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.topbar {
-    background: var(--navy);
-    color: white;
-    padding: 22px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
-.topbar h1 {
-    margin: 0;
-    font-size: 22px;
-}
-
-.topbar p {
-    margin: 5px 0 0;
-    color: #d9e6f3;
-    font-size: 13px;
-}
-
-.print-button {
-    background: white;
-    color: var(--navy);
-    border: none;
-    border-radius: 6px;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.wrapper {
-    max-width: 1450px;
-    margin: 25px auto;
-    padding: 0 20px;
-    display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    gap: 24px;
-    align-items: start;
-}
-
-.sidebar {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px;
-    position: sticky;
-    top: 15px;
-    max-height: calc(100vh - 30px);
-    overflow-y: auto;
-}
-
-.sidebar h3 {
-    margin: 0 0 14px;
-    color: var(--navy);
-    font-size: 16px;
-}
-
-.sidebar a {
-    display: block;
-    padding: 8px 10px;
-    margin-bottom: 3px;
-    border-radius: 5px;
-    color: #4a5e72;
-    text-decoration: none;
-    font-size: 12px;
-}
-
-.sidebar a:hover {
-    background: #eaf2ff;
-    color: var(--blue);
+.toolbar button {
+  background: var(--teal);
+  color: white;
+  border: 0;
+  padding: 10px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
 }
 
 .document {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 38px 42px;
-    min-width: 0;
+  max-width: 900px;
+  margin: 25px auto;
+  padding: 55px 65px;
+  background: white;
+  box-shadow: 0 3px 15px #00000012;
 }
 
 .cover {
-    border-bottom: 3px solid var(--blue);
-    padding-bottom: 25px;
-    margin-bottom: 28px;
+  min-height: 900px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  page-break-after: always;
 }
 
-.eyebrow {
-    text-transform: uppercase;
-    color: var(--teal);
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 1.5px;
+.brand {
+  color: var(--teal);
+  font-weight: bold;
+  letter-spacing: 3px;
+  font-size: 15px;
 }
 
 .cover h1 {
-    color: var(--navy);
-    font-size: 34px;
-    line-height: 1.2;
-    margin: 12px 0;
+  color: var(--navy);
+  font-size: 35px;
+  line-height: 1.25;
+  margin: 35px 0 15px;
 }
 
-.cover p {
-    color: var(--muted);
-    max-width: 760px;
+.cover h2 {
+  color: var(--teal);
+  font-size: 20px;
+  font-weight: normal;
 }
 
-.metadata {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 25px;
+.cover-line {
+  width: 100px;
+  height: 4px;
+  background: var(--teal);
+  margin: 25px auto;
 }
 
-.meta-card {
-    background: #f4f8fc;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 12px;
+.cover-info {
+  margin-top: 65px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
-.meta-card strong {
-    display: block;
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-}
-
-.meta-card span {
-    font-size: 13px;
-    font-weight: bold;
-}
-
-.notice {
-    padding: 14px 16px;
-    border-left: 4px solid var(--blue);
-    background: #edf4ff;
-    margin: 20px 0;
-    border-radius: 5px;
-}
-
-.warning {
-    background: #fff7e4;
-    border-left-color: #d99b19;
-}
-
-.success {
-    background: #eaf7ef;
-    border-left-color: var(--teal);
-}
-
-section {
-    margin: 38px 0;
-    scroll-margin-top: 20px;
+h1, h2, h3, h4 {
+  color: var(--navy);
+  line-height: 1.35;
 }
 
 h2 {
-    font-size: 23px;
-    color: var(--navy);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 10px;
-    margin-bottom: 18px;
+  font-size: 21px;
+  border-bottom: 2px solid var(--teal);
+  padding-bottom: 10px;
+  margin-top: 35px;
 }
 
 h3 {
-    color: #254764;
-    font-size: 17px;
-    margin: 25px 0 10px;
+  font-size: 15px;
+  margin-top: 24px;
+  margin-bottom: 9px;
 }
 
 h4 {
-    color: #334e68;
-    margin-bottom: 6px;
+  font-size: 13px;
+  margin-bottom: 5px;
 }
 
-p {
-    margin: 9px 0 14px;
-}
+p { margin: 7px 0 12px; }
 
 ul, ol {
-    padding-left: 24px;
+  padding-left: 24px;
+  margin-top: 7px;
 }
 
-li {
-    margin: 5px 0;
+li { margin: 4px 0; }
+
+.section {
+  margin-bottom: 28px;
 }
 
-.table-wrap {
-    width: 100%;
-    overflow-x: auto;
-    margin: 16px 0 22px;
+.intro {
+  color: var(--muted);
+  font-size: 13px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
+.note {
+  background: #edf7f8;
+  border-left: 4px solid var(--teal);
+  padding: 13px 16px;
+  margin: 15px 0;
 }
 
-th, td {
-    border: 1px solid var(--border);
-    padding: 10px 12px;
-    text-align: left;
-    vertical-align: top;
-}
-
-th {
-    background: #eaf1f8;
-    color: var(--navy);
-    font-weight: bold;
-}
-
-tr:nth-child(even) td {
-    background: #fafcff;
-}
-
-.card-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    margin: 18px 0;
-}
-
-.card {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 15px;
-    background: #fff;
-    break-inside: avoid;
-}
-
-.card h3 {
-    margin-top: 0;
-    font-size: 15px;
-}
-
-.card p {
-    margin-bottom: 0;
+.warning {
+  background: #fff7e9;
+  border-left: 4px solid #d89a32;
+  padding: 13px 16px;
+  margin: 15px 0;
 }
 
 .workflow {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  background: var(--light);
+  padding: 15px;
+  border-radius: 6px;
+  margin: 15px 0;
 }
 
-.workflow-step {
-    display: grid;
-    grid-template-columns: 45px minmax(0, 1fr);
-    gap: 12px;
-    align-items: start;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
+.step {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 9px 12px;
+  font-weight: bold;
+  color: var(--navy);
 }
 
-.step-number {
-    background: var(--navy);
-    color: white;
-    width: 35px;
-    height: 35px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    font-weight: bold;
+.arrow {
+  color: var(--teal);
+  font-weight: bold;
 }
 
-.workflow-step h3 {
-    margin: 0 0 5px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 13px 0 20px;
+  font-size: 12px;
 }
 
-.workflow-step p {
-    margin: 0;
-    color: var(--muted);
+th, td {
+  border: 1px solid var(--border);
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
 }
 
-.pill {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: #eaf2ff;
-    color: #174ea6;
-    font-size: 11px;
-    font-weight: bold;
+th {
+  background: var(--light);
+  color: var(--navy);
 }
 
-.check-list {
-    list-style: none;
-    padding: 0;
+.footer-note {
+  margin-top: 35px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  color: var(--muted);
+  font-size: 10px;
 }
 
-.check-list li {
-    padding: 8px 10px 8px 32px;
-    position: relative;
-    border-bottom: 1px solid #edf0f4;
+.page-break {
+  page-break-before: always;
 }
 
-.check-list li::before {
-    content: "□";
-    position: absolute;
-    left: 8px;
-    font-size: 16px;
-    color: var(--teal);
-}
-
-code {
-    background: #eef2f6;
-    border-radius: 4px;
-    padding: 2px 5px;
-    font-family: Consolas, monospace;
-    font-size: 12px;
-}
-
-.footer {
-    border-top: 1px solid var(--border);
-    margin-top: 45px;
-    padding-top: 18px;
-    color: var(--muted);
-    font-size: 12px;
-}
-
-@media (max-width: 950px) {
-    .wrapper {
-        grid-template-columns: 1fr;
-    }
-
-    .sidebar {
-        position: static;
-        max-height: none;
-    }
-
-    .sidebar nav {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 4px;
-    }
-
-    .document {
-        padding: 25px;
-    }
-}
-
-@media (max-width: 600px) {
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 18px;
-    }
-
-    .metadata,
-    .card-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .cover h1 {
-        font-size: 28px;
-    }
-
-    .document {
-        padding: 18px;
-    }
-
-    .sidebar nav {
-        grid-template-columns: 1fr;
-    }
+@page {
+  size: A4;
+  margin: 17mm 16mm 18mm;
 }
 
 @media print {
-    @page {
-        size: A4;
-        margin: 16mm;
-    }
+  body {
+    background: white;
+    font-size: 11px;
+  }
 
-    body {
-        background: white;
-        color: #222;
-        font-size: 10pt;
-        line-height: 1.5;
-    }
+  .toolbar { display: none; }
 
-    .topbar {
-        background: white;
-        color: #17324d;
-        border-bottom: 2px solid #17324d;
-        padding: 0 0 15px;
-    }
+  .document {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
 
-    .topbar p {
-        color: #555;
-    }
+  .cover {
+    min-height: 255mm;
+  }
 
-    .print-button,
-    .sidebar {
-        display: none !important;
-    }
+  h2, h3, h4 {
+    page-break-after: avoid;
+  }
 
-    .wrapper {
-        display: block;
-        margin: 0;
-        padding: 0;
-        max-width: none;
-    }
+  table, .note, .warning, .workflow {
+    page-break-inside: avoid;
+  }
 
-    .document {
-        border: none;
-        border-radius: 0;
-        padding: 0;
-    }
-
-    .cover h1 {
-        font-size: 27pt;
-    }
-
-    h2 {
-        font-size: 17pt;
-    }
-
-    h3 {
-        font-size: 12pt;
-    }
-
-    section {
-        margin: 24px 0;
-    }
-
-    .card,
-    .workflow-step,
-    .meta-card,
-    .notice {
-        break-inside: avoid;
-    }
-
-    table {
-        font-size: 9pt;
-    }
-
-    th, td {
-        padding: 7px;
-    }
-
-    a {
-        color: inherit;
-        text-decoration: none;
-    }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<header class="topbar">
-    <div>
-        <h1>HMS | Operating Room Module</h1>
-        <p>Implementation Guide and UI/UX Requirements</p>
-    </div>
-
-    <button class="print-button" onclick="window.print()">
-        Print / Save as PDF
-    </button>
-</header>
-
-<div class="wrapper">
-
-    <aside class="sidebar">
-        <h3>Guide Contents</h3>
-
-        <nav>
-            <a href="#overview">1. Overview</a>
-            <a href="#scope">2. Scope and Principles</a>
-            <a href="#workflow">3. End-to-End Workflow</a>
-            <a href="#booking">4. Surgical Booking</a>
-            <a href="#finance">5. Finance Handoff</a>
-            <a href="#preoperative">6. Pre-operative Evaluation</a>
-            <a href="#orders">7. Pre-operative Orders</a>
-            <a href="#intraoperative">8. Intraoperative Record</a>
-            <a href="#operation-note">9. Operation Note</a>
-            <a href="#pacu">10. PACU Recovery</a>
-            <a href="#postoperative">11. Post-operative Management</a>
-            <a href="#roles">12. Roles and Permissions</a>
-            <a href="#integration">13. HMS Integration</a>
-            <a href="#safety">14. Safety and Audit</a>
-            <a href="#testing">15. Acceptance Checklist</a>
-            <a href="#open-questions">16. Open Questions</a>
-        </nav>
-    </aside>
-
-    <main class="document">
-
-        <div class="cover">
-            <div class="eyebrow">Hospital Management System</div>
-
-            <h1>Operating Room Module</h1>
-
-            <p>
-                UI/UX Guidance, Workflow Definition, and Implementation
-                Requirements for the Hospital Operating Room (OR) Module.
-            </p>
-
-            <div class="metadata">
-                <div class="meta-card">
-                    <strong>Document</strong>
-                    <span>Implementation Guide</span>
-                </div>
-
-                <div class="meta-card">
-                    <strong>Status</strong>
-                    <span>Review Draft</span>
-                </div>
-
-                <div class="meta-card">
-                    <strong>Module</strong>
-                    <span>Operating Room</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="notice warning">
-            <strong>Important:</strong>
-            This document is an implementation and design guide, not an
-            approved clinical protocol. Clinical workflows, required fields,
-            permissions, and decision rules must be validated by the hospital
-            before production use.
-        </div>
-
-        <!-- 1. OVERVIEW -->
-        <section id="overview">
-            <h2>1. Overview</h2>
-
-            <p>
-                The Operating Room Module manages the documentation and
-                workflow associated with preparing a patient for surgery,
-                recording intraoperative activities, and documenting recovery
-                and postoperative management.
-            </p>
-
-            <p>
-                The workflow begins when an authorized doctor selects
-                <strong>Prepare for Surgery</strong>. The doctor records the
-                surgery type and booking details. The system then initiates
-                the surgery workflow and flags the surgery for Finance in the
-                Payment Module.
-            </p>
-
-            <p>
-                The module should use existing HMS patient records, encounters,
-                staff directories, consent handling, medication workflows,
-                investigations, billing, and admission/transfer functionality
-                wherever these capabilities already exist.
-            </p>
-
-            <div class="card-grid">
-                <div class="card">
-                    <h3>Primary Objective</h3>
-                    <p>
-                        Provide a clear, traceable workflow for surgical
-                        booking, preparation, intraoperative documentation,
-                        recovery, and postoperative care.
-                    </p>
-                </div>
-
-                <div class="card">
-                    <h3>Design Principle</h3>
-                    <p>
-                        Keep the interface practical and easy to navigate.
-                        Reuse existing HMS functions rather than duplicating
-                        entire modules.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. SCOPE -->
-        <section id="scope">
-            <h2>2. Scope and Design Principles</h2>
-
-            <h3>2.1 Included screens</h3>
-
-            <ol>
-                <li>Surgical Booking / Prepare for Surgery</li>
-                <li>Pre-operative Evaluation and Checklist</li>
-                <li>Pre-operative Orders</li>
-                <li>Intraoperative Record</li>
-                <li>Operation Note</li>
-                <li>PACU Recovery</li>
-                <li>Post-operative Management</li>
-            </ol>
-
-            <h3>2.2 General UI/UX requirements</h3>
-
-            <ul>
-                <li>
-                    Display the patient and active encounter context on
-                    patient-specific screens.
-                </li>
-                <li>
-                    Use consistent navigation, form controls, spacing,
-                    headings, and status indicators.
-                </li>
-                <li>
-                    Keep related fields grouped into clearly labeled sections.
-                </li>
-                <li>
-                    Show readable labels and units where applicable.
-                </li>
-                <li>
-                    Provide clear validation messages and save confirmation
-                    based on the actual result.
-                </li>
-                <li>
-                    Preserve entered information when a recoverable error
-                    occurs, where technically possible.
-                </li>
-                <li>
-                    Support smaller screens without hiding essential actions.
-                </li>
-                <li>
-                    Use the existing HMS authentication and authorization
-                    patterns.
-                </li>
-            </ul>
-        </section>
-
-        <!-- 3. WORKFLOW -->
-        <section id="workflow">
-            <h2>3. End-to-End Workflow</h2>
-
-            <p>
-                The proposed OR workflow consists of initiation and
-                identification, finance pricing, pre-operative preparation,
-                intraoperative documentation, and postoperative recovery.
-            </p>
-
-            <div class="workflow">
-
-                <div class="workflow-step">
-                    <div class="step-number">1</div>
-                    <div>
-                        <h3>Initiation and Identification</h3>
-                        <p>
-                            An authorized doctor selects or enters the surgery
-                            type, records booking details, and uses
-                            <strong>Prepare for Surgery</strong> to initiate
-                            the workflow.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="workflow-step">
-                    <div class="step-number">2</div>
-                    <div>
-                        <h3>Finance Pricing</h3>
-                        <p>
-                            The system flags the surgery in Payment Module
-                            → Surgery Payment. Finance selects the applicable
-                            pricing option.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="workflow-step">
-                    <div class="step-number">3</div>
-                    <div>
-                        <h3>Pre-operative Preparation</h3>
-                        <p>
-                            The team documents surgical assessment, anesthesia
-                            evaluation, checklist items, consent, and
-                            pre-operative orders.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="workflow-step">
-                    <div class="step-number">4</div>
-                    <div>
-                        <h3>Intraoperative Documentation</h3>
-                        <p>
-                            The team records the surgical record, anesthesia
-                            record, circulating nurse notes, instrument and
-                            sponge counts, and operation note.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="workflow-step">
-                    <div class="step-number">5</div>
-                    <div>
-                        <h3>Postoperative Recovery</h3>
-                        <p>
-                            The team records PACU observations, pain score,
-                            consciousness level, Aldrete score, postoperative
-                            orders, and progress notes.
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="notice">
-                This is the proposed system workflow. It does not replace
-                hospital-approved clinical checklists or authorize automatic
-                clinical decisions.
-            </div>
-        </section>
-
-        <!-- 4. BOOKING -->
-        <section id="booking">
-            <h2>4. Screen 1 — Surgical Booking / Prepare for Surgery</h2>
-
-            <h3>4.1 Purpose</h3>
-
-            <p>
-                Create or open the surgery record using the existing patient
-                and encounter context. Capture the required booking details
-                and initiate the downstream workflow.
-            </p>
-
-            <h3>4.2 Required fields and actions</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Field / Action</th>
-                            <th>Expected Behavior</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Prepare for Surgery</td>
-                            <td>
-                                Initiates the configured surgery workflow
-                                using the existing patient/encounter context.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Surgery Type</td>
-                            <td>
-                                Doctor selects an existing value or types
-                                a new surgery name.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Preoperative Diagnosis</td>
-                            <td>Records the preoperative diagnosis.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Planned Procedure</td>
-                            <td>Records the planned procedure.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Surgeon</td>
-                            <td>
-                                Uses the existing staff directory where
-                                available.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Assistant Surgeon</td>
-                            <td>
-                                Uses the existing staff directory where
-                                available.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Anesthetist</td>
-                            <td>
-                                Uses the existing staff directory where
-                                available.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>4.3 Surgery Type behavior</h3>
-
-            <p>
-                The supplied requirement describes Surgery Type as a
-                self-learning list. The interface should support selecting
-                an existing value or typing a new name.
-            </p>
-
-            <p>
-                The precise behavior for storing new names, matching similar
-                names, preventing duplicates, and reviewing new entries must
-                be confirmed before implementation.
-            </p>
-
-            <h3>4.4 Expected result</h3>
-
-            <ul>
-                <li>A surgery record is created or opened.</li>
-                <li>The patient and encounter association is retained.</li>
-                <li>The surgery becomes available to the configured workflow.</li>
-                <li>A finance task is flagged after the surgery type is entered.</li>
-            </ul>
-        </section>
-
-        <!-- 5. FINANCE -->
-        <section id="finance">
-            <h2>5. Finance Handoff and Surgery Payment</h2>
-
-            <h3>5.1 Responsibility separation</h3>
-
-            <p>
-                Clinical staff enter surgery information. Finance handles
-                pricing in the Payment Module. The OR interface should not
-                expose surgery price or package editing to clinical staff
-                unless the hospital explicitly approves a different
-                permission model.
-            </p>
-
-            <h3>5.2 Finance workflow</h3>
-
-            <ol>
-                <li>The doctor enters the surgery type.</li>
-                <li>The system flags the item in Payment Module → Surgery Payment.</li>
-                <li>Finance reviews the surgery payment task.</li>
-                <li>Finance selects the applicable pricing option.</li>
-                <li>The payment decision is recorded in the existing billing workflow.</li>
-            </ol>
-
-            <h3>5.3 Pricing options</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Option</th>
-                            <th>Meaning</th>
-                            <th>Responsible Role</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Direct Surgery Price</td>
-                            <td>
-                                Applies the price for the surgery procedure
-                                only.
-                            </td>
-                            <td>Finance</td>
-                        </tr>
-
-                        <tr>
-                            <td>Offer Package</td>
-                            <td>
-                                Applies a package that may include surgery
-                                service, medication/pharmacy, consumables,
-                                and other treatments.
-                            </td>
-                            <td>Finance</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="notice warning">
-                The exact billing rules, package definitions, price calculations,
-                payment status requirements, and any surgery scheduling
-                restrictions must come from the existing HMS billing design
-                and hospital policy.
-            </div>
-        </section>
-
-        <!-- 6. PREOPERATIVE -->
-        <section id="preoperative">
-            <h2>6. Screen 2 — Pre-operative Evaluation and Checklist</h2>
-
-            <h3>6.1 Surgical Assessment</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Required Field</th>
-                            <th>Purpose</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Diagnosis</td>
-                            <td>Documents the surgical diagnosis.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Procedure Planned</td>
-                            <td>Documents the planned operation.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>6.2 Anesthesia Evaluation</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Required Field</th>
-                            <th>UI Requirement</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>ASA Classification</td>
-                            <td>
-                                Capture the classification selected by
-                                the authorized clinician.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Airway Assessment</td>
-                            <td>
-                                Provide a field for the documented assessment.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Allergies</td>
-                            <td>
-                                Display or capture allergy information
-                                according to the existing HMS allergy workflow.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>6.3 Pre-operative Checklist</h3>
-
-            <ul class="check-list">
-                <li>Consent Signed</li>
-                <li>Blood Available</li>
-                <li>Site Marked</li>
-                <li>Investigations Reviewed</li>
-                <li>Fasting Status Checked</li>
-                <li>Jewelry Removal Checked</li>
-            </ul>
-
-            <p>
-                The first four fields are the explicitly supplied checklist
-                requirements. Fasting status and jewelry removal are also
-                included in the supplied workflow description.
-            </p>
-
-            <h3>6.4 Consent Management</h3>
-
-            <p>
-                The system should support the hospital-approved method for
-                recording consent, including digital consent or uploading
-                the relevant consent document.
-            </p>
-
-            <p>
-                Consent document access, signing, version history, and
-                retention should follow the existing HMS document and audit
-                approach.
-            </p>
-        </section>
-
-        <!-- 7. PREOP ORDERS -->
-        <section id="orders">
-            <h2>7. Screen 3 — Pre-operative Orders</h2>
-
-            <p>
-                Provide a clear form for documenting the authorized
-                pre-operative orders. Medication orders should reuse the
-                existing medication and pharmacy workflow where available.
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Required Field</th>
-                            <th>Expected UI Behavior</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>NPO Status</td>
-                            <td>Record the authorized NPO instruction.</td>
-                        </tr>
-
-                        <tr>
-                            <td>IV Fluids</td>
-                            <td>Document the authorized fluid order.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Antibiotic Prophylaxis</td>
-                            <td>
-                                Record the authorized order through the
-                                applicable medication workflow.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Blood Products</td>
-                            <td>Document the authorized order.</td>
-                        </tr>
-
-                        <tr>
-                            <td>DVT Prophylaxis</td>
-                            <td>Document the authorized order.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="notice warning">
-                Do not invent medication doses, fasting intervals, antibiotic
-                regimens, blood product rules, or DVT protocols. These must
-                follow approved hospital policies and authorized clinical
-                orders.
-            </div>
-        </section>
-
-        <!-- 8. INTRAOPERATIVE -->
-        <section id="intraoperative">
-            <h2>8. Screen 4 — Intraoperative Record</h2>
-
-            <h3>8.1 Surgical Record</h3>
-
-            <ul>
-                <li>Procedure Performed</li>
-                <li>Operative Findings</li>
-                <li>Estimated Blood Loss</li>
-                <li>Complications</li>
-            </ul>
-
-            <h3>8.2 Anesthesia Record</h3>
-
-            <ul>
-                <li>Drugs Administered</li>
-                <li>Monitoring Record</li>
-                <li>Fluid Balance</li>
-            </ul>
-
-            <h3>8.3 Circulating Nurse Note</h3>
-
-            <p>
-                Provide a dedicated area for the circulating nurse to record
-                relevant notes and observations. Timestamping and recorder
-                identity should follow the existing HMS audit pattern.
-            </p>
-
-            <h3>8.4 Instrument and Sponge Count</h3>
-
-            <div class="notice warning">
-                <strong>Required workflow checkpoint:</strong>
-                The supplied requirements specify instrument and sponge count
-                documentation before incision closure.
-            </div>
-
-            <p>
-                The system should provide a clearly visible place to record
-                the count status and related documentation. The exact count
-                procedure, discrepancy handling, escalation, and authorization
-                requirements must follow hospital-approved policy.
-            </p>
-
-            <p>
-                The application must not silently treat a missing count as
-                completed. Any blocking or escalation behavior must be
-                confirmed with the hospital before development.
-            </p>
-        </section>
-
-        <!-- 9. OPERATION NOTE -->
-        <section id="operation-note">
-            <h2>9. Screen 5 — Operation Note</h2>
-
-            <p>
-                The operation note provides a consolidated record of the
-                procedure and its key findings.
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Required Field</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Preoperative Diagnosis</td>
-                            <td>Diagnosis before the operation.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Postoperative Diagnosis</td>
-                            <td>Diagnosis after the operation.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Procedure Performed</td>
-                            <td>Actual procedure performed.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Findings</td>
-                            <td>Operative findings.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Specimens Sent</td>
-                            <td>Document specimens sent, where applicable.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Complications</td>
-                            <td>Document complications or status.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Estimated Blood Loss</td>
-                            <td>Record the estimate and appropriate unit.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Surgeon</td>
-                            <td>Record the responsible surgeon.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Assistant</td>
-                            <td>Record the assistant.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Anesthetist</td>
-                            <td>Record the anesthetist.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>9.1 Documentation behavior</h3>
-
-            <ul>
-                <li>Associate the note with the correct surgery record.</li>
-                <li>Record the author and relevant timestamps.</li>
-                <li>Use existing HMS draft, signature, and finalization patterns.</li>
-                <li>Preserve audit history for approved corrections.</li>
-            </ul>
-
-            <p>
-                The precise signature, locking, and amendment rules remain
-                subject to confirmation with the hospital and the existing
-                HMS implementation.
-            </p>
-        </section>
-
-        <!-- 10. PACU -->
-        <section id="pacu">
-            <h2>10. Screen 6 — PACU Recovery</h2>
-
-            <p>
-                The PACU screen captures recovery observations after the
-                operation and anesthesia.
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Required Field</th>
-                            <th>Documentation Requirement</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Vital Signs</td>
-                            <td>Record observations using approved fields and units.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Pain Score</td>
-                            <td>Capture the score and applicable scale.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Consciousness Level</td>
-                            <td>Record the documented assessment.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Aldrete Score</td>
-                            <td>Capture the score according to the approved process.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>10.1 UI/UX guidance</h3>
-
-            <ul>
-                <li>Keep patient and surgery context visible.</li>
-                <li>Provide clearly labeled fields for recovery observations.</li>
-                <li>Display recorded values and timestamps clearly.</li>
-                <li>Reuse existing observation and clinical documentation patterns.</li>
-            </ul>
-
-            <div class="notice warning">
-                Aldrete scoring rules, recovery monitoring frequency,
-                discharge criteria, and clinical thresholds must not be
-                invented by the frontend developer. Use the approved
-                hospital process.
-            </div>
-        </section>
-
-        <!-- 11. POSTOPERATIVE -->
-        <section id="postoperative">
-            <h2>11. Screen 7 — Post-operative Management</h2>
-
-            <p>
-                Provide a structured area for documenting postoperative
-                management and progress.
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Required Field</th>
-                            <th>Expected Behavior</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Analgesics</td>
-                            <td>
-                                Record or reference the authorized medication
-                                order.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Antibiotics</td>
-                            <td>
-                                Record or reference the authorized medication
-                                order.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>IV Fluids</td>
-                            <td>Document the authorized fluid order.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Diet</td>
-                            <td>Document the authorized diet instruction.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Mobilization</td>
-                            <td>Document the authorized mobilization instruction.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Postoperative Progress Notes</td>
-                            <td>Capture clinical progress documentation.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>11.1 Existing HMS integration</h3>
-
-            <p>
-                Medication administration, pharmacy, ward transfer, ICU
-                transfer, and other destination handoffs should use existing
-                HMS workflows where available.
-            </p>
-
-            <p>
-                The OR module should not independently create duplicate
-                medication, billing, admission, or transfer systems when
-                the required functionality already exists.
-            </p>
-        </section>
-
-        <!-- 12. ROLES -->
-        <section id="roles">
-            <h2>12. Roles and Permissions</h2>
-
-            <p>
-                The following is a proposed responsibility separation based
-                on the supplied workflow. Final access permissions must match
-                the existing HMS authorization model and hospital policy.
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Role</th>
-                            <th>Proposed Responsibility</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Doctor / Surgeon</td>
-                            <td>
-                                Surgery booking, diagnosis, planned procedure,
-                                clinical assessment, and applicable notes/orders.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Anesthetist</td>
-                            <td>
-                                Anesthesia evaluation, anesthesia records,
-                                and applicable clinical documentation.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Operating Room Nurse</td>
-                            <td>
-                                Applicable nursing records, checklist
-                                documentation, and count records according
-                                to assigned responsibilities.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>PACU Staff</td>
-                            <td>
-                                Recovery observations and related
-                                documentation according to assigned duties.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Finance</td>
-                            <td>
-                                Surgery pricing and package selection in the
-                                Payment Module.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>System Administrator</td>
-                            <td>
-                                Technical configuration and access
-                                administration according to existing policy.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="notice">
-                These role descriptions are a starting point, not a finalized
-                permissions matrix. Do not grant or remove access without
-                comparing against the existing HMS roles.
-            </div>
-        </section>
-
-        <!-- 13. INTEGRATION -->
-        <section id="integration">
-            <h2>13. Integration with the Existing HMS</h2>
-
-            <p>
-                The OR module should extend the existing HMS rather than
-                duplicate its core functionality.
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Existing HMS Capability</th>
-                            <th>Expected Integration</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Patient Records</td>
-                            <td>Reuse existing patient identity and record.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Encounter / Admission</td>
-                            <td>Associate surgery with the appropriate encounter.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Staff Directory</td>
-                            <td>Reuse available staff selection and identity.</td>
-                        </tr>
-
-                        <tr>
-                            <td>Payment / Billing</td>
-                            <td>
-                                Flag the surgery in Payment Module → Surgery
-                                Payment for Finance.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Medication / Pharmacy</td>
-                            <td>
-                                Reuse the established medication and pharmacy
-                                workflows.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Investigations</td>
-                            <td>
-                                Reuse available investigation records and
-                                results.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Consent / Documents</td>
-                            <td>
-                                Reuse the approved document storage and
-                                consent workflow.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Admission / Transfer</td>
-                            <td>
-                                Use existing ward, ICU, and transfer
-                                functionality where available.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Audit</td>
-                            <td>
-                                Follow existing record history and correction
-                                patterns.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h3>13.1 Implementation approach</h3>
-
-            <ol>
-                <li>Inspect the current HMS navigation and patient context.</li>
-                <li>Identify existing routes, components, services, and APIs.</li>
-                <li>Map each OR requirement to an existing capability where possible.</li>
-                <li>Identify genuine gaps before creating new components or endpoints.</li>
-                <li>Implement only approved additions.</li>
-                <li>Test existing ICU and other HMS functions for regressions.</li>
-            </ol>
-        </section>
-
-        <!-- 14. SAFETY -->
-        <section id="safety">
-            <h2>14. Safety, Validation, and Audit</h2>
-
-            <h3>14.1 Patient and encounter context</h3>
-
-            <p>
-                Patient-specific records must be associated with the correct
-                patient and active encounter. The interface should make this
-                context visible to authorized users.
-            </p>
-
-            <h3>14.2 Clinical documentation</h3>
-
-            <ul>
-                <li>Do not silently overwrite finalized clinical records.</li>
-                <li>Use the approved correction and audit process.</li>
-                <li>Record staff identity and timestamps according to existing rules.</li>
-                <li>Display clear validation and save-result messages.</li>
-                <li>Do not report successful saving before the server confirms it.</li>
-            </ul>
-
-            <h3>14.3 Clinical rules requiring approval</h3>
-
-            <ul>
-                <li>Mandatory field rules and which roles can complete them.</li>
-                <li>Instrument and sponge count discrepancy handling.</li>
-                <li>Consent requirements and verification behavior.</li>
-                <li>Medication order and verification rules.</li>
-                <li>ASA classification handling and anesthesia documentation.</li>
-                <li>PACU monitoring and Aldrete scoring behavior.</li>
-                <li>Recovery, discharge, and transfer criteria.</li>
-            </ul>
-
-            <div class="notice warning">
-                The prototype interface alone is not suitable for real clinical
-                use. Production deployment requires server-side validation,
-                access control, persistence, auditability, and clinical review.
-            </div>
-        </section>
-
-        <!-- 15. ACCEPTANCE -->
-        <section id="testing">
-            <h2>15. Implementation and Acceptance Checklist</h2>
-
-            <p>
-                Use this checklist during implementation review. Mark an item
-                complete only after the behavior has been implemented and
-                tested in the actual HMS environment.
-            </p>
-
-            <h3>15.1 Booking and finance</h3>
-
-            <ul class="check-list">
-                <li>Correct patient and encounter context is displayed.</li>
-                <li>Surgery Type supports selection and typed input.</li>
-                <li>Booking fields are available.</li>
-                <li>Prepare for Surgery triggers the approved workflow.</li>
-                <li>Finance task appears in the correct payment location.</li>
-                <li>Pricing options are controlled by Finance permissions.</li>
-            </ul>
-
-            <h3>15.2 Pre-operative workflow</h3>
-
-            <ul class="check-list">
-                <li>Surgical Assessment fields are available.</li>
-                <li>Anesthesia Evaluation fields are available.</li>
-                <li>Pre-operative checklist is available.</li>
-                <li>Consent handling follows the approved workflow.</li>
-                <li>Pre-operative Orders fields are available.</li>
-            </ul>
-
-            <h3>15.3 Intraoperative workflow</h3>
-
-            <ul class="check-list">
-                <li>Surgical Record fields are available.</li>
-                <li>Anesthesia Record fields are available.</li>
-                <li>Circulating Nurse Note is available.</li>
-                <li>Instrument and sponge count documentation is available.</li>
-                <li>Count checkpoint behavior is validated against policy.</li>
-                <li>Operation Note fields are available.</li>
-            </ul>
-
-            <h3>15.4 Postoperative workflow</h3>
-
-            <ul class="check-list">
-                <li>PACU Vital Signs field is available.</li>
-                <li>Pain Score field is available.</li>
-                <li>Consciousness Level field is available.</li>
-                <li>Aldrete Score field is available.</li>
-                <li>Post-operative management fields are available.</li>
-                <li>Existing transfer and medication workflows are reused.</li>
-            </ul>
-
-            <h3>15.5 Technical acceptance</h3>
-
-            <ul class="check-list">
-                <li>Role permissions are enforced on the server.</li>
-                <li>Records persist correctly in the database.</li>
-                <li>Audit history is preserved.</li>
-                <li>Error and success states are tested.</li>
-                <li>Responsive layout is tested.</li>
-                <li>Existing HMS and ICU functions continue to work.</li>
-            </ul>
-        </section>
-
-        <!-- 16. OPEN QUESTIONS -->
-        <section id="open-questions">
-            <h2>16. Open Questions Before Production</h2>
-
-            <p>
-                These points need confirmation before the implementation
-                becomes a production clinical workflow.
-            </p>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Question</th>
-                            <th>Why It Matters</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>
-                                How should new Surgery Type names be stored
-                                and reviewed?
-                            </td>
-                            <td>
-                                Avoid duplicate names and unintended
-                                self-learning behavior.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                What conditions, if any, must be met before
-                                surgery scheduling?
-                            </td>
-                            <td>
-                                The system must follow approved hospital
-                                workflow rather than inventing restrictions.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                What is the exact instrument and sponge count
-                                discrepancy process?
-                            </td>
-                            <td>
-                                The workflow must match approved clinical
-                                policy and responsibilities.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                Which fields require signatures or
-                                countersignatures?
-                            </td>
-                            <td>
-                                Determines authorization, finalization,
-                                and amendment behavior.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                What are the approved PACU scoring and
-                                recovery procedures?
-                            </td>
-                            <td>
-                                Prevents the application from inventing
-                                clinical rules.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                Which existing HMS APIs and components
-                                support the workflow?
-                            </td>
-                            <td>
-                                Ensures correct integration and avoids
-                                duplicate systems.
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                What billing statuses and pricing rules
-                                already exist?
-                            </td>
-                            <td>
-                                Keeps the finance handoff consistent
-                                with existing billing behavior.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <div class="notice success">
-            <strong>Implementation principle:</strong>
-            Build the OR module around the hospital's actual workflow,
-            preserve the supplied field requirements, reuse existing HMS
-            capabilities, and obtain approval for unresolved clinical and
-            operational rules before production deployment.
-        </div>
-
-        <div class="footer">
-            <strong>HMS — Operating Room Module</strong><br>
-            UI/UX Guidance and Implementation Requirements · Review Draft<br>
-            This guide does not replace approved hospital policies or clinical
-            protocols.
-        </div>
-
-    </main>
+<div class="toolbar">
+  <strong>HMS | Operating Room Workflow Guide</strong>
+  <button onclick="window.print()">Print / Save as PDF</button>
 </div>
 
+<main class="document">
+
+<!-- COVER PAGE -->
+<section class="cover">
+  <div class="brand">HOSPITAL MANAGEMENT SYSTEM</div>
+
+  <div class="cover-line"></div>
+
+  <h1>OPERATING ROOM<br>MANAGEMENT MODULE</h1>
+
+  <h2>Workflow and Functional Guide</h2>
+
+  <p style="margin-top:30px">
+    Surgical Booking · Pre-operative Care · Intraoperative Documentation<br>
+    Operation Note · PACU Recovery · Post-operative Management
+  </p>
+
+  <div class="cover-line"></div>
+
+  <div class="cover-info">
+    <p><strong>Document Type:</strong> Functional Workflow Proposal</p>
+    <p><strong>Module:</strong> Operating Room (OR)</p>
+    <p><strong>Version:</strong> 1.0</p>
+    <p><strong>Prepared for:</strong> Hospital Management System Implementation</p>
+  </div>
+</section>
+
+<!-- INTRODUCTION -->
+<section class="section">
+<h2>1. Introduction</h2>
+
+<p>
+The Operating Room (OR) Module is designed to manage and document the
+patient's surgical journey, from surgical booking and pre-operative
+preparation through the operation, post-anesthesia recovery and
+post-operative management.
+</p>
+
+<p>
+The module supports coordination between OPD, IPD, ICU, the Operating
+Room, PACU and the Finance/Payment Module. It provides structured
+documentation of surgical activities, patient transfers, clinical
+handover and financial references.
+</p>
+
+<h3>1.1 Purpose</h3>
+<ul>
+  <li>Organize and manage surgical bookings and operating room schedules.</li>
+  <li>Document pre-operative assessments and orders.</li>
+  <li>Record intraoperative surgical and anesthesia information.</li>
+  <li>Maintain complete operation notes.</li>
+  <li>Document PACU recovery and reassessment.</li>
+  <li>Support postoperative care in IPD and ICU.</li>
+  <li>Integrate surgical bookings with the hospital's Finance/Payment Module.</li>
+  <li>Maintain traceable patient transfer and handover records.</li>
+</ul>
+
+<h3>1.2 Scope</h3>
+<p>
+This guide defines the proposed functional workflow and documentation
+requirements for the OR Module. It is a system implementation proposal,
+not a clinical protocol or substitute for hospital-approved clinical
+policies.
+</p>
+</section>
+
+<!-- PATIENT JOURNEY -->
+<section class="section">
+<h2>2. Patient Origin and Entry into the OR Workflow</h2>
+
+<p>
+A patient may enter the surgical workflow from any of the following
+hospital departments:
+</p>
+
+<ul>
+  <li><strong>OPD:</strong> A patient assessed in the outpatient department
+  and referred for a planned surgical procedure.</li>
+  <li><strong>IPD:</strong> An admitted patient requiring a surgical
+  procedure during hospitalization.</li>
+  <li><strong>ICU:</strong> A critically ill patient referred to the
+  Operating Room with documented referral and clinical handover.</li>
+</ul>
+
+<h3>2.1 Patient Identification</h3>
+<p>
+The OR Module should retrieve or identify the patient's existing hospital
+record rather than creating an unrelated duplicate patient record.
+Relevant patient and admission references should remain linked to the
+surgical encounter.
+</p>
+
+<h3>2.2 ICU-to-OR Referral and Handover</h3>
+<p>
+When a patient is referred from ICU to the OR, the system should support:
+</p>
+<ul>
+  <li>ICU referral documentation.</li>
+  <li>Patient identification and admission reference.</li>
+  <li>Referral date and time.</li>
+  <li>Referring department and responsible staff.</li>
+  <li>Clinical handover notes.</li>
+  <li>Receiving OR confirmation.</li>
+  <li>Transfer date, time and receiving staff documentation.</li>
+</ul>
+
+<div class="note">
+<strong>Important:</strong> The ICU-to-OR transfer must be documented as
+a linked patient movement. The patient's ICU admission should not be
+treated as closed merely because the patient has moved to the OR.
+</div>
+</section>
+
+<!-- BOOKING -->
+<section class="section">
+<h2>14. OPERATING ROOM (OR) MODULE</h2>
+
+<h3>14.1 Surgical Booking</h3>
+
+<p>
+The surgical booking screen is used to register and schedule a planned
+or urgent surgical procedure. It should link the booking to the patient's
+existing hospital record and the appropriate patient origin.
+</p>
+
+<p><strong>Required Surgical Booking Fields</strong></p>
+<ul>
+  <li>Preoperative Diagnosis</li>
+  <li>Planned Procedure</li>
+  <li>Surgeon</li>
+  <li>Assistant Surgeon</li>
+  <li>Anesthetist</li>
+</ul>
+
+<h3>14.2 Supporting Booking Information</h3>
+<ul>
+  <li>Patient identification and admission reference.</li>
+  <li>Patient origin: OPD, IPD or ICU.</li>
+  <li>Scheduled date and time.</li>
+  <li>Assigned operating room.</li>
+  <li>Surgical priority, according to hospital policy.</li>
+  <li>Booking status and relevant documentation.</li>
+</ul>
+
+<h3>14.3 Surgical Schedule</h3>
+<p>
+The module should provide a surgical schedule showing booked procedures,
+assigned operating rooms, scheduled times and booking statuses. Changes
+to a booking should remain traceable.
+</p>
+
+<h3>14.4 Surgery Payment Integration</h3>
+<p>
+When a surgical booking is saved, the system should create a linked
+finance item in:
+</p>
+
+<div class="workflow">
+  <div class="step">OR Surgical Booking</div>
+  <div class="arrow">→</div>
+  <div class="step">Payment Module</div>
+  <div class="arrow">→</div>
+  <div class="step">Surgery Payment</div>
+</div>
+
+<p>
+The Finance Department manages pricing and payment records. Finance
+selects the applicable pricing option:
+</p>
+
+<table>
+<thead>
+<tr>
+  <th>Payment Option</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Direct Surgery Price</strong></td>
+  <td>Charges for the surgical procedure only.</td>
+</tr>
+<tr>
+  <td><strong>Offer Package</strong></td>
+  <td>May include surgery service, medication/pharmacy, consumables and
+  other treatments.</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+The OR Module should display the linked finance reference, selected
+payment type and finance status. Pricing, billing and payment transactions
+remain under the Finance/Payment Module.
+</p>
+
+<div class="warning">
+<strong>Emergency surgery:</strong> Pending financial clearance must not
+automatically block emergency surgery. Emergency exceptions and related
+authorization must follow the hospital's approved policy.
+</div>
+</section>
+
+<!-- PREOPERATIVE -->
+<section class="section page-break">
+<h2>15. PRE-OPERATIVE EVALUATION</h2>
+
+<p>
+The Pre-operative Evaluation section records the assessment and
+readiness documentation before the patient proceeds to surgery.
+</p>
+
+<h3>15.1 Surgical Assessment</h3>
+<ul>
+  <li>Diagnosis</li>
+  <li>Procedure Planned</li>
+</ul>
+
+<h3>15.2 Anesthesia Evaluation</h3>
+<ul>
+  <li>ASA Classification</li>
+  <li>Airway Assessment</li>
+  <li>Allergies</li>
+</ul>
+
+<h3>15.3 Pre-operative Checklist</h3>
+<ul>
+  <li>Consent Signed</li>
+  <li>Blood Available</li>
+  <li>Site Marked</li>
+  <li>Investigations Reviewed</li>
+</ul>
+
+<h3>15.4 Supporting Operational Checks</h3>
+<p>
+Where required by hospital policy, the workflow may also document
+patient identification, procedure confirmation, fasting status,
+removal of jewelry and other preparation checks.
+</p>
+
+<p>
+The system should record checklist completion and relevant
+documentation. It should not independently determine clinical
+readiness or invent clinical clearance rules.
+</p>
+</section>
+
+<!-- ORDERS -->
+<section class="section">
+<h2>16. PRE-OPERATIVE ORDERS</h2>
+
+<p>
+This section records the pre-operative orders associated with the
+planned surgical procedure.
+</p>
+
+<ul>
+  <li>NPO Status</li>
+  <li>IV Fluids</li>
+  <li>Antibiotic Prophylaxis</li>
+  <li>Blood Products</li>
+  <li>DVT Prophylaxis</li>
+</ul>
+
+<p>
+Orders should be documented with the relevant order details, responsible
+staff and date/time information as supported by the hospital's existing
+clinical workflow.
+</p>
+
+<div class="note">
+The system provides documentation fields. Medication selection,
+dosages, timing and clinical decisions must follow approved hospital
+orders and protocols.
+</div>
+</section>
+
+<!-- INTRAOPERATIVE -->
+<section class="section">
+<h2>17. INTRAOPERATIVE RECORD</h2>
+
+<p>
+The Intraoperative Record documents the surgical and anesthesia
+activities performed during the operation.
+</p>
+
+<h3>17.1 Surgical Record</h3>
+<ul>
+  <li>Procedure Performed</li>
+  <li>Operative Findings</li>
+  <li>Estimated Blood Loss</li>
+  <li>Complications</li>
+</ul>
+
+<h3>17.2 Anesthesia Record</h3>
+<ul>
+  <li>Drugs Administered</li>
+  <li>Monitoring Record</li>
+  <li>Fluid Balance</li>
+</ul>
+
+<h3>17.3 Additional Operational Documentation</h3>
+<p>
+The system may also support the following operational records:
+</p>
+<ul>
+  <li>Circulating Nurse Record</li>
+  <li>Instrument and Sponge Counts</li>
+  <li>Count Discrepancy and Action Taken</li>
+</ul>
+
+<p>
+The record should support date/time documentation and identification
+of the staff responsible for the recorded information.
+</p>
+</section>
+
+<!-- OPERATION NOTE -->
+<section class="section page-break">
+<h2>18. OPERATION NOTE</h2>
+
+<p>
+The Operation Note is the structured documentation of the completed
+surgical procedure. It should be linked to the patient and the
+corresponding surgical encounter.
+</p>
+
+<h3>Required Operation Note Fields</h3>
+<ul>
+  <li>Preoperative Diagnosis</li>
+  <li>Postoperative Diagnosis</li>
+  <li>Procedure Performed</li>
+  <li>Findings</li>
+  <li>Specimens Sent</li>
+  <li>Complications</li>
+  <li>Estimated Blood Loss</li>
+  <li>Surgeon</li>
+  <li>Assistant</li>
+  <li>Anesthetist</li>
+</ul>
+
+<p>
+The operation note should be saved as part of the surgical encounter
+and remain available for subsequent postoperative care and review.
+</p>
+</section>
+
+<!-- PACU -->
+<section class="section">
+<h2>19. PACU MODULE</h2>
+
+<p>
+The Post-Anesthesia Care Unit (PACU) is the dedicated recovery stage
+following surgery and anesthesia. It provides a structured place to
+document the patient's arrival, recovery observations, reassessment,
+recovery progress and disposition.
+</p>
+
+<h3>19.1 PACU Arrival</h3>
+<p>
+The system should document PACU arrival date/time, receiving staff
+and the handover information received from the Operating Room.
+</p>
+
+<h3>19.2 Recovery Assessment</h3>
+<p><strong>Required PACU Fields</strong></p>
+<ul>
+  <li>Vital Signs</li>
+  <li>Pain Score</li>
+  <li>Consciousness Level</li>
+  <li>Aldrete Score</li>
+</ul>
+
+<h3>19.3 Repeated Observations and Reassessment</h3>
+<p>
+The PACU screen should support multiple observation entries rather
+than a single one-time assessment. Each entry should allow recording
+of its date/time and the relevant recovery observations.
+</p>
+
+<p>
+Reassessment and recovery progress should be documented throughout
+the patient's PACU stay according to hospital-approved procedures.
+</p>
+
+<h3>19.4 Recovery Documentation</h3>
+<ul>
+  <li>PACU arrival and receiving handover.</li>
+  <li>Repeated vital signs and observations.</li>
+  <li>Pain score documentation.</li>
+  <li>Consciousness level documentation.</li>
+  <li>Aldrete score documentation.</li>
+  <li>Reassessment and recovery progress notes.</li>
+  <li>Disposition and transfer documentation.</li>
+  <li>Handover and receiving confirmation.</li>
+</ul>
+
+<h3>19.5 PACU Disposition</h3>
+<p>
+After the recovery stage, the system should support documentation of
+the intended receiving destination:
+</p>
+<ul>
+  <li>IPD</li>
+  <li>ICU</li>
+</ul>
+
+<p>
+The receiving unit, transfer date/time, sending staff, receiving staff
+and handover details should be documented.
+</p>
+
+<div class="warning">
+<strong>Important:</strong> This guide does not define clinical PACU
+discharge criteria, Aldrete thresholds or the Aldrete scoring formula.
+These must follow the hospital's approved clinical policy.
+</div>
+</section>
+
+<!-- POSTOPERATIVE -->
+<section class="section page-break">
+<h2>20. POST-OPERATIVE MANAGEMENT</h2>
+
+<p>
+Post-operative management continues after surgery and recovery in the
+patient's receiving department. Depending on the patient's care pathway,
+the receiving department may be IPD or ICU.
+</p>
+
+<h3>Required Post-operative Management Fields</h3>
+<ul>
+  <li>Analgesics</li>
+  <li>Antibiotics</li>
+  <li>IV Fluids</li>
+  <li>Diet</li>
+  <li>Mobilization</li>
+  <li>Postoperative Progress Notes</li>
+</ul>
+
+<h3>20.1 Continuity of Care</h3>
+<p>
+Postoperative documentation should remain linked to the patient's
+hospital admission and surgical encounter. Clinical information from
+the operation and PACU should be available to support continuity
+of care in IPD or ICU.
+</p>
+
+<h3>20.2 Ongoing Documentation</h3>
+<p>
+The receiving department should document postoperative management
+and progress according to its existing clinical workflow. The OR
+Module should retain the relevant surgical record and transfer
+information.
+</p>
+
+<div class="note">
+<strong>Important:</strong> Closing the OR surgical encounter does
+not automatically close the patient's entire hospital admission.
+The patient may continue receiving care in IPD or ICU.
+</div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="section">
+<h2>3. End-to-End Patient Workflow</h2>
+
+<h3>3.1 General Patient Journey</h3>
+
+<div class="workflow">
+  <div class="step">OPD / IPD / ICU</div>
+  <div class="arrow">→</div>
+  <div class="step">Surgical Booking</div>
+  <div class="arrow">→</div>
+  <div class="step">Pre-operative Evaluation</div>
+  <div class="arrow">→</div>
+  <div class="step">Pre-operative Orders</div>
+  <div class="arrow">→</div>
+  <div class="step">OR</div>
+  <div class="arrow">→</div>
+  <div class="step">PACU</div>
+  <div class="arrow">→</div>
+  <div class="step">IPD / ICU</div>
+</div>
+
+<h3>3.2 OR-to-PACU-to-IPD</h3>
+<ol>
+  <li>The patient completes the surgical procedure.</li>
+  <li>The intraoperative record and operation note are documented.</li>
+  <li>The patient is transferred to PACU.</li>
+  <li>PACU arrival, observations, reassessments and recovery progress
+  are documented.</li>
+  <li>Disposition and handover to IPD are recorded.</li>
+  <li>IPD continues postoperative management.</li>
+</ol>
+
+<h3>3.3 OR-to-PACU-to-ICU</h3>
+<ol>
+  <li>The patient completes the surgical procedure.</li>
+  <li>The intraoperative record and operation note are documented.</li>
+  <li>The patient is transferred to PACU.</li>
+  <li>PACU recovery observations and reassessments are documented.</li>
+  <li>Disposition and handover to ICU are recorded.</li>
+  <li>ICU continues postoperative management.</li>
+</ol>
+
+<h3>3.4 Direct OR-to-ICU Transfer</h3>
+<p>
+The system must also support a direct transfer from the Operating Room
+to ICU when clinically authorized. In this pathway, PACU may be bypassed.
+</p>
+
+<div class="workflow">
+  <div class="step">Operating Room</div>
+  <div class="arrow">→</div>
+  <div class="step">Direct ICU Transfer</div>
+</div>
+
+<p>
+The direct transfer must include the relevant authorization according
+to hospital policy, transfer date/time, sending and receiving staff,
+clinical handover and receiving confirmation.
+</p>
+
+<div class="warning">
+PACU must not be treated as a mandatory stop for every patient.
+The workflow should support both PACU-based recovery and the
+clinically authorized direct OR-to-ICU pathway.
+</div>
+</section>
+
+<!-- TRANSFER -->
+<section class="section">
+<h2>4. Patient Transfer and Handover Management</h2>
+
+<p>
+Every movement between hospital departments should be traceable.
+The system should record the movement and confirm that the receiving
+department has accepted the patient.
+</p>
+
+<h3>4.1 Transfer Information</h3>
+<ul>
+  <li>Patient identification and admission reference.</li>
+  <li>Sending department and destination department.</li>
+  <li>Transfer date and time.</li>
+  <li>Sending staff.</li>
+  <li>Receiving staff.</li>
+  <li>Handover information.</li>
+  <li>Receiving confirmation.</li>
+</ul>
+
+<h3>4.2 Patient Location</h3>
+<p>
+The patient's current hospital location should be updated through
+the documented transfer process. The system should retain the
+movement history rather than simply replacing the previous location
+without a trace.
+</p>
+</section>
+
+<!-- FINANCE -->
+<section class="section">
+<h2>5. Finance and Payment Integration</h2>
+
+<h3>5.1 Integration Workflow</h3>
+<div class="workflow">
+  <div class="step">Surgical Booking Saved</div>
+  <div class="arrow">→</div>
+  <div class="step">Linked Finance Item</div>
+  <div class="arrow">→</div>
+  <div class="step">Surgery Payment</div>
+  <div class="arrow">→</div>
+  <div class="step">Finance Status Displayed in OR</div>
+</div>
+
+<h3>5.2 Finance Responsibilities</h3>
+<ul>
+  <li>Select Direct Surgery Price or Offer Package.</li>
+  <li>Manage the applicable pricing information.</li>
+  <li>Manage billing and payment transactions.</li>
+  <li>Maintain the finance reference and payment status.</li>
+</ul>
+
+<h3>5.3 OR Responsibilities</h3>
+<ul>
+  <li>Create the linked finance item when the surgical booking is saved.</li>
+  <li>Display the linked finance reference.</li>
+  <li>Display the selected payment type and finance status.</li>
+  <li>Maintain the relationship between the booking and finance record.</li>
+</ul>
+
+<p>
+The OR Module should not independently create or modify finance-owned
+pricing and payment transactions.
+</p>
+
+<div class="warning">
+Emergency surgery exceptions and financial authorization must be
+handled according to hospital-approved policies. The software should
+not automatically prevent emergency care because a payment status
+is pending.
+</div>
+</section>
+
+<!-- ENCOUNTER CLOSURE -->
+<section class="section">
+<h2>6. OR Encounter Closure and Admission Continuity</h2>
+
+<p>
+The OR surgical encounter and the patient's hospital admission are
+related but separate records.
+</p>
+
+<ul>
+  <li>The OR encounter contains the surgical booking and operation
+  documentation.</li>
+  <li>PACU contains the recovery documentation where the patient
+  follows the PACU pathway.</li>
+  <li>IPD or ICU continues the patient's postoperative care.</li>
+  <li>Closing the OR encounter must not automatically close the
+  patient's hospital admission.</li>
+  <li>Transfer and receiving confirmation must remain available
+  as part of the patient's hospital record.</li>
+</ul>
+</section>
+
+<!-- DATA AND AUDIT -->
+<section class="section">
+<h2>7. General System Requirements</h2>
+
+<h3>7.1 Patient Record Linking</h3>
+<p>
+Surgical records, pre-operative documentation, intraoperative
+records, operation notes, PACU observations and postoperative
+records should be linked to the correct patient and relevant
+hospital admission.
+</p>
+
+<h3>7.2 Date and Time Documentation</h3>
+<p>
+Relevant clinical and operational entries should retain their
+recorded date/time and responsible staff information.
+</p>
+
+<h3>7.3 Record Traceability</h3>
+<p>
+The system should maintain a traceable history of important
+documentation, status changes, transfers and handovers according
+to hospital information governance requirements.
+</p>
+
+<h3>7.4 Department Coordination</h3>
+<p>
+The OR workflow should support coordination with OPD, IPD, ICU,
+PACU and Finance without replacing the responsibilities of
+those departments' existing modules.
+</p>
+</section>
+
+<!-- DECISIONS -->
+<section class="section page-break">
+<h2>8. Items Requiring Hospital Confirmation</h2>
+
+<p>
+The following items should be reviewed and confirmed by the hospital
+before final implementation:
+</p>
+
+<ul>
+  <li>Approved roles and permissions for surgical booking,
+  evaluation, documentation and closure.</li>
+  <li>Operating room scheduling and booking approval rules.</li>
+  <li>Hospital-specific consent and surgical checklist requirements.</li>
+  <li>Pre-operative and anesthesia documentation requirements.</li>
+  <li>Clinical policies for PACU recovery and disposition.</li>
+  <li>Hospital-approved criteria for direct OR-to-ICU transfer.</li>
+  <li>Emergency surgery and financial exception procedures.</li>
+  <li>Required signatures, timestamps and audit requirements.</li>
+  <li>Integration details with existing patient, admission,
+  PACU and Finance modules.</li>
+  <li>Hospital-approved clinical terminology and documentation formats.</li>
+</ul>
+
+<div class="warning">
+This document intentionally does not prescribe medication regimens,
+clinical thresholds, clinical scoring formulas or medical decisions.
+These must be supplied and approved by the hospital's authorized
+clinical teams.
+</div>
+</section>
+
+<!-- SUMMARY -->
+<section class="section">
+<h2>9. Final Workflow Summary</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Stage</th>
+  <th>Main Function</th>
+  <th>Expected Documentation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Patient Entry</td>
+  <td>OPD, IPD or ICU referral</td>
+  <td>Patient identification and referral/handover</td>
+</tr>
+<tr>
+  <td>Surgical Booking</td>
+  <td>Schedule surgery</td>
+  <td>Diagnosis, planned procedure and surgical team</td>
+</tr>
+<tr>
+  <td>Pre-operative Evaluation</td>
+  <td>Record assessments</td>
+  <td>Surgical assessment, anesthesia evaluation and checklist</td>
+</tr>
+<tr>
+  <td>Pre-operative Orders</td>
+  <td>Record orders</td>
+  <td>NPO, IV fluids, prophylaxis and blood products</td>
+</tr>
+<tr>
+  <td>Intraoperative Record</td>
+  <td>Document surgery and anesthesia</td>
+  <td>Procedure, findings, blood loss, complications and anesthesia record</td>
+</tr>
+<tr>
+  <td>Operation Note</td>
+  <td>Complete surgical report</td>
+  <td>Diagnoses, procedure, findings, specimens and surgical team</td>
+</tr>
+<tr>
+  <td>PACU</td>
+  <td>Document recovery</td>
+  <td>Vital signs, pain, consciousness, Aldrete and reassessment</td>
+</tr>
+<tr>
+  <td>Post-operative Management</td>
+  <td>Continue care in IPD or ICU</td>
+  <td>Analgesics, antibiotics, IV fluids, diet, mobilization and progress notes</td>
+</tr>
+<tr>
+  <td>Finance Integration</td>
+  <td>Link surgical booking to finance</td>
+  <td>Direct Surgery Price / Offer Package and finance status</td>
+</tr>
+<tr>
+  <td>Transfer and Closure</td>
+  <td>Maintain patient movement and encounter records</td>
+  <td>Transfer details, handover and receiving confirmation</td>
+</tr>
+</tbody>
+</table>
+
+<h3>Conclusion</h3>
+
+<p>
+The proposed HMS Operating Room Module provides an organized workflow
+for surgical booking, pre-operative preparation, intraoperative
+documentation, operation reporting, PACU recovery and postoperative
+management.
+</p>
+
+<p>
+It supports patient movement from OPD, IPD or ICU into the OR and
+subsequent transfer to PACU, IPD or ICU, including a direct OR-to-ICU
+pathway when clinically authorized. It also establishes a link between
+surgical booking and the hospital's Finance/Payment Module while
+preserving finance ownership of pricing and payment records.
+</p>
+
+<div class="footer-note">
+  HMS – Operating Room Management Module | Functional Workflow Guide |
+  Version 1.0
+</div>
+</section>
+
+</main>
 </body>
 </html>
